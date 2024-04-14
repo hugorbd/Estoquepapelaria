@@ -2,15 +2,15 @@ import oracledb
 import conexao
 
 # Função para cadastrar os custos no banco de dados
-def cadastrar_custo(connection, custo_prod, custo_adm, comissao_venda, imposto, lucro):
+def cadastrar_custo(connection, id_prod, custo_prod, custo_adm, comissao_venda, imposto, lucro):
     cursor = connection.cursor()
 
     # Consulta SQL para atualizar os custos na tabela preco
-    sql = "INSERT INTO preco (CUSTO_PROD, CUSTO_ADM, COMISSAO_VENDA, IMPOSTO, LUCRO) VALUES (:1, :2, :3, :4, :5)"
+    sql = "INSERT INTO preco (ID_PROD, CUSTO_PROD, CUSTO_ADM, COMISSAO_VENDA, IMPOSTO, LUCRO) VALUES (:1, :2, :3, :4, :5, :6)"
     
     try:
         # Executar a consulta SQL com os parâmetros fornecidos
-        cursor.execute(sql, (custo_prod, custo_adm, comissao_venda, imposto, lucro))
+        cursor.execute(sql, (id_prod, custo_prod, custo_adm, comissao_venda, imposto, lucro))
         connection.commit()  # Confirmar a transação no banco de dados
         print("Custos cadastrados com sucesso.")
     except oracledb.Error as e:
@@ -20,15 +20,15 @@ def cadastrar_custo(connection, custo_prod, custo_adm, comissao_venda, imposto, 
         cursor.close()
 
 # Função para cadastrar um produto no banco de dados
-def cadastrar_produto(connection, cod_prod, nome_prod, preco_prod, categoria_prod, quantidade_prod):
+def cadastrar_produto(connection, id_prod, nome_prod, preco_prod, categoria_prod, quantidade_prod, desc_prod):
     cursor = connection.cursor()
 
     # Consulta SQL para inserir um novo produto
-    sql = "INSERT INTO produtos (ID_PROD, NOME_PROD, PRECO_PROD, CATEGORIA_PROD, QNT_PROD) VALUES (:1, :2, :3, :4, :5)"
+    sql = "INSERT INTO produtos (ID_PROD, NOME_PROD, PRECO_PROD, CATEGORIA_PROD, QNT_PROD, DESC_PROD) VALUES (:1, :2, :3, :4, :5, :6)"
     
     try:
         # Executar a consulta SQL com os parâmetros fornecidos
-        cursor.execute(sql, (cod_prod, nome_prod, preco_prod, categoria_prod, quantidade_prod))
+        cursor.execute(sql, (id_prod, nome_prod, preco_prod, categoria_prod, quantidade_prod, desc_prod))
         connection.commit()  # Confirmar a transação no banco de dados
         print("Produto cadastrado com sucesso.")
     except oracledb.Error as e:
@@ -131,18 +131,20 @@ try:
             preco_prod = float(input("Inserir o preço de venda do produto: \n"))
             categoria_prod = input("Inserir a categoria do produto: \n")
             quantidade_prod = int(input("Inserir quantidade do produto em estoque: \n"))
+            desc_prod = input(("Inserir a descrição do produto: \n"))
 
-            cadastrar_produto(connection, cod_prod, nome_prod, preco_prod, categoria_prod, quantidade_prod)
+            cadastrar_produto(connection, cod_prod, nome_prod, preco_prod, categoria_prod, quantidade_prod, desc_prod)
 
         elif esc == 3:
             print("Cadastrar custo.\n")
+            id_prod = int(input("Inserir o código do produto: \n"))
             custo_prod = float(input("Custo do produto: "))
             custo_adm = float(input("Custo administrativo: "))
             comissao_venda = float(input("Comissão de venda: "))
             imposto = float(input("Imposto: "))
             lucro = float(input("Lucro: "))
 
-            cadastrar_custo(connection, custo_prod, custo_adm, comissao_venda, imposto, lucro)
+            cadastrar_custo(connection, id_prod, custo_prod, custo_adm, comissao_venda, imposto, lucro)
         elif esc == 4:
             break
 
