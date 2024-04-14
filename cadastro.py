@@ -32,6 +32,15 @@ def cadastrar_produto(connection, id_prod, nome_prod, preco_prod, categoria_prod
         cursor.execute(sql, (id_prod, nome_prod, preco_prod, categoria_prod, quantidade_prod, desc_prod))
         connection.commit()  # Confirmar a transação no banco de dados
         print("Produto cadastrado com sucesso.")  # Exibir mensagem de sucesso
+
+        # Exibir informações do produto cadastrado
+        print("ID: ", id_prod)
+        print("Nome: ", nome_prod)
+        print("Preço: ", preco_prod)
+        print("Categoria: ", categoria_prod)
+        print("Quantidade: ", quantidade_prod)
+        print("Descrição: ", desc_prod)
+        
     except oracledb.Error as e:
         print("Erro ao cadastrar produto:", e)  # Em caso de erro, exibir mensagem de erro
         connection.rollback()  # Reverter a transação em caso de erro
