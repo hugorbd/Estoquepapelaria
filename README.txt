@@ -1,1 +1,1 @@
-
+Escrever explicação do códgo
