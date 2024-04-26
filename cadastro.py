@@ -240,3 +240,4 @@ finally:
         connection.close()  # Fechar a conexão com o banco de dados
 
 print("\nPrograma encerrado.")  # Exibir mensagem de encerramento do programa
+print( "amo meus amgnes")
