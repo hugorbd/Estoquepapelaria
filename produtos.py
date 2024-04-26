@@ -136,7 +136,9 @@ def buscar_produto(connection, nome_produto):
     cursor = connection.cursor()  # Cria um cursor para executar comandos no banco de dados
 
     # Consulta SQL para buscar um produto pelo nome
-    sql = "SELECT ID_PROD, NOME_PROD, PRECO_PROD, CATEGORIA_PROD, QNT_PROD, DESC_PROD FROM produtos WHERE NOME_PROD LIKE :1"
+    # Consulta SQL para buscar um produto pelo nome (case-insensitive)
+    sql = "SELECT ID_PROD, NOME_PROD, PRECO_PROD, CATEGORIA_PROD, QNT_PROD, DESC_PROD FROM produtos WHERE UPPER(NOME_PROD) LIKE UPPER(:1)"
+
 
     try:
         # Executar a consulta
@@ -183,7 +185,7 @@ try:
         print("1. Calcular preço de venda")
         print("2. Cadastrar produto")
         print("3. Cadastrar custo")
-        print("4. consultar produto")
+        print("4. Consultar produto")
         print("5. Sair")
 
         esc = int(input("Opção: "))  # Ler a opção escolhida pelo usuário
