@@ -131,6 +131,43 @@ def imprimir_tabela_lucro(tipo_lucro):
     # Resetar a cor para o texto normal após imprimir a tabela
     print(Style.RESET_ALL)
 
+# Função para buscar um produto pelo nome e verificar se existe
+def buscar_produto(connection, nome_produto):
+    cursor = connection.cursor()  # Cria um cursor para executar comandos no banco de dados
+
+    # Consulta SQL para buscar um produto pelo nome
+    sql = "SELECT ID_PROD, NOME_PROD, PRECO_PROD, CATEGORIA_PROD, QNT_PROD, DESC_PROD FROM produtos WHERE NOME_PROD LIKE :1"
+
+    try:
+        # Executar a consulta
+        cursor.execute(sql, (f'%{nome_produto}%',))
+
+        # Recuperar os resultados da consulta
+        rows = cursor.fetchall()
+        
+        if rows:
+            print("Resultados da busca:")
+            for row in rows:
+                # Exibir informações do produto encontrado
+                print("ID: ", row[0])
+                print("Nome: ", row[1])
+                print("Preço: ", row[2])
+                print("Categoria: ", row[3])
+                print("Quantidade: ", row[4])
+                print("Descrição: ", row[5])
+                print()  # Adicionar uma linha em branco entre os produtos encontrados
+            return True  # Indicar que o produto foi encontrado
+        else:
+            print("Nenhum produto encontrado com esse nome.")
+            return False  # Indicar que o produto não foi encontrado
+
+    except oracledb.Error as e:
+        print("Erro ao buscar produto pelo nome:", e)
+        return False  # Indicar que houve um erro na busca
+    finally:
+        cursor.close()  # Fechar o cursor
+
+
 # Informações de conexão ao banco de dados
 username = conexao.username  # Nome de usuário para conexão
 password = conexao.password  # Senha para conexão
@@ -146,7 +183,8 @@ try:
         print("1. Calcular preço de venda")
         print("2. Cadastrar produto")
         print("3. Cadastrar custo")
-        print("4. Sair")
+        print("4. consultar produto")
+        print("5. Sair")
 
         esc = int(input("Opção: "))  # Ler a opção escolhida pelo usuário
 
@@ -227,7 +265,20 @@ try:
 
             # Chamar a função para cadastrar o custo no banco de dados
             cadastrar_custo(connection, id_prod, custo_prod, custo_adm, comissao_venda, imposto, lucro)
-        elif esc == 4:  # Se a opção escolhida for sair
+        elif esc == 4:  # Se a opção escolhida for buscar produto por nome
+            print("Buscar produto por nome.\n")  # Exibir mensagem para o usuário
+            # Solicitar nome do produto ao usuário
+            nome_produto = input("Digite o nome do produto: ")
+            # Verificar se o produto existe no banco de dados antes de exibir suas informações
+            if buscar_produto(connection, nome_produto):
+                # Se o produto existir, as informações já foram exibidas dentro da função buscar_produto_por_nome
+               pass
+            else:
+               print("O produto não está registrado no banco de dados.")
+
+
+
+        elif esc == 5:  # Se a opção escolhida for sair
             break  # Encerrar o loop
         else:
             print("Opção inválida. Por favor, escolha uma das opções disponíveis.")  # Exibir mensagem de opção inválida
@@ -240,4 +291,7 @@ finally:
         connection.close()  # Fechar a conexão com o banco de dados
 
 print("\nPrograma encerrado.")  # Exibir mensagem de encerramento do programa
-print( "amo meus amgnes")
+
+
+
+
