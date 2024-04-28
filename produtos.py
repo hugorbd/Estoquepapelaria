@@ -179,7 +179,7 @@ def excluir_produto (connection, id_prod): # funçao para excluir produto
         # executa a consulta.
         cursor.execute (sql,(id_prod,))
         # confirmar a transaçao do banco de dados.
-        conection.commit ()
+        connection.commit ()
         if cursor.rowcount >0:
             print(f"produto com id {id_prod} foi excluido com sucesso.") # exibir mensagem de sucesso.
         else:
