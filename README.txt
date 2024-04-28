@@ -38,3 +38,8 @@ Ana Julia Matozo Rodrigues
 Hugo Daniel Bosada Rodrigues
 Letícia Lima da Silva
 Murilo Euphrasio Brito
+
+
+
+link para o relatório de PI:
+https://docs.google.com/document/d/1dGQ-mLstGcMMhHNDr56iqff3Kl52USz7qkfX0wcKfCc/edit?usp=sharing 
