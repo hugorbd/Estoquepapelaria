@@ -37,7 +37,7 @@ Encerra a execução do programa.
 Ana Julia Matozo Rodrigues
 Hugo Daniel Bosada Rodrigues
 Letícia Lima da Silva
-Murilo Euphrasio Brito
+Murilo Euphrasio Britoo
 
 
 
