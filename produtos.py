@@ -168,7 +168,27 @@ def buscar_produto(connection, nome_produto):
         return False  # Indicar que houve um erro na busca
     finally:
         cursor.close()  # Fechar o cursor
+    
+def excluir_produto (connection, id_prod): # funçao para excluir produto 
+    cursor = connection.cursor()  # cria um cursor para executar comandos no banco de dados.          
 
+    # consulta sql para deletar um produto pelo id.
+    sql = "DELETE FROM PRODUTOS WHERE ID_PROD = : 1"
+
+    try:
+        # executa a consulta.
+        cursor.execute (sql,(id_prod,))
+        # confirmar a transaçao do banco de dados.
+        conection.commit ()
+        if cursor.rowcount >0:
+            print(f"produto com id {id_prod} foi excluido com sucesso.") # exibir mensagem de sucesso.
+        else:
+            print(f"produto com id {id_prod} nao foi encontrado.") # exibir mensagem se o produto nao for encontrado.
+    except oracledb.Error as e: 
+        print("Erro ao excluir produto:", e) # exibir mensagem de erro.
+        connection.rollback () # reverter a transaçao em caso de erro.
+    finally:
+        cursor.close()  # Fechar o cursor
 
 # Informações de conexão ao banco de dados
 username = conexao.username  # Nome de usuário para conexão
@@ -186,7 +206,8 @@ try:
         print("2. Cadastrar produto")
         print("3. Cadastrar custo")
         print("4. Consultar produto")
-        print("5. Sair")
+        print("5. Excluir produto")
+        print("6. Sair")
 
         esc = int(input("Opção: "))  # Ler a opção escolhida pelo usuário
 
@@ -278,9 +299,15 @@ try:
             else:
                print("O produto não está registrado no banco de dados.")
 
+        elif esc == 5:
+            # solicitar id do produto ao usuario.
+            id_prod = int(input("Digite o id do produto que deseja excluir: "))
+
+            # chamar a funçao para excluir produto com id especifico.
+            excluir_produto(connection,id_prod)
 
 
-        elif esc == 5:  # Se a opção escolhida for sair
+        elif esc == 6:  # Se a opção escolhida for sair
             break  # Encerrar o loop
         else:
             print("Opção inválida. Por favor, escolha uma das opções disponíveis.")  # Exibir mensagem de opção inválida
