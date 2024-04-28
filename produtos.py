@@ -1,8 +1,76 @@
 import oracledb  # Importa o módulo para interagir com o banco de dados Oracle
 import conexao  # Importa o módulo com informações de conexão ao banco de dados
 from colorama import Fore, Style  # Importa módulos para estilização de texto colorido no terminal
+import numpy as np  # Importa o módulo numpy para lidar com operações de matriz
+from sympy import Matrix  # Importa o módulo sympy para lidar com matrizes
 
-# Função para cadastrar os custos no banco de dados
+# Função para converter uma string em uma lista de valores numéricos
+# Função para converter uma string em uma lista de valores numéricos
+def string_para_numeros(texto, comprimento_chave):
+    # Converter cada caractere em um número (exemplo: 'A' a 'Z' -> 0 a 25)
+    texto = texto.upper().replace(" ", "")
+    numeros = [ord(char) - ord('A') for char in texto]
+    # Completar com zeros se o comprimento não for múltiplo do tamanho da chave
+    while len(numeros) % comprimento_chave != 0:
+        numeros.append(0)
+    return numeros
+
+# Função para converter uma lista de valores numéricos em uma string
+def numeros_para_string(numeros):
+    # Converte uma lista de números em uma string, adicionando 'A' ao número para obter um caractere
+    texto = ''.join(chr(num + ord('A')) for num in numeros)
+    return texto
+
+# Função para criptografar a descrição utilizando a cifra de Hill
+def criptografar_hill(texto, matriz_chave):
+    # Obtém o comprimento da chave (número de linhas ou colunas da matriz)
+    comprimento_chave = matriz_chave.shape[0]
+    # Converte a string em uma lista de números
+    numeros = string_para_numeros(texto, comprimento_chave)
+    # Lista para armazenar números criptografados
+    numeros_criptografados = []
+    
+    # Criptografa cada bloco de tamanho comprimento_chave da lista de números
+    for i in range(0, len(numeros), comprimento_chave):
+        # Seleciona um bloco de números com tamanho comprimento_chave
+        bloco = np.array(numeros[i:i + comprimento_chave])
+        # Multiplica a matriz de chave pelo bloco para criptografar
+        bloco_criptografado = np.dot(matriz_chave, bloco) % 26
+        # Adiciona o bloco criptografado à lista de números criptografados
+        numeros_criptografados.extend(bloco_criptografado)
+    
+    # Converte a lista de números criptografados de volta para uma string
+    texto_criptografado = numeros_para_string(numeros_criptografados)
+    return texto_criptografado
+
+# Função para descriptografar a descrição utilizando a cifra de Hill
+def descriptografar_hill(texto_criptografado, matriz_chave):
+    # Obtém o comprimento da chave (número de linhas ou colunas da matriz)
+    comprimento_chave = matriz_chave.shape[0]
+    # Converte a string criptografada em uma lista de números
+    numeros = string_para_numeros(texto_criptografado, comprimento_chave)
+    
+    # Calcula a inversa da matriz de chave com módulo 26
+    matriz_chave_inv = Matrix(matriz_chave).inv_mod(26)
+    
+    # Lista para armazenar números descriptografados
+    numeros_descriptografados = []
+    
+    # Descriptografa cada bloco de tamanho comprimento_chave da lista de números
+    for i in range(0, len(numeros), comprimento_chave):
+        # Seleciona um bloco de números com tamanho comprimento_chave
+        bloco = np.array(numeros[i:i + comprimento_chave])
+        # Multiplica a inversa da matriz de chave pelo bloco para descriptografar
+        bloco_descriptografado = np.dot(matriz_chave_inv, bloco) % 26
+        # Adiciona o bloco descriptografado à lista de números descriptografados
+        numeros_descriptografados.extend(bloco_descriptografado)
+    
+    # Converte a lista de números descriptografados de volta para uma string
+    texto_descriptografado = numeros_para_string(numeros_descriptografados)
+    return texto_descriptografado
+
+
+# Função para cadastrar os custos no banco de dados com a descrição criptografada
 def cadastrar_custo(connection, id_prod, custo_prod, custo_adm, comissao_venda, imposto, lucro):
     cursor = connection.cursor()  # Cria um cursor para executar comandos no banco de dados
 
@@ -20,16 +88,19 @@ def cadastrar_custo(connection, id_prod, custo_prod, custo_adm, comissao_venda, 
     finally:
         cursor.close()  # Fechar o cursor
 
-# Função para cadastrar um produto no banco de dados
-def cadastrar_produto(connection, id_prod, nome_prod, preco_prod, categoria_prod, quantidade_prod, desc_prod):
+# Função para cadastrar um produto no banco de dados com a descrição criptografada
+def cadastrar_produto(connection, id_prod, nome_prod, preco_prod, categoria_prod, quantidade_prod, desc_prod, key_matrix):
     cursor = connection.cursor()  # Cria um cursor para executar comandos no banco de dados
 
     # Consulta SQL para inserir um novo produto
     sql = "INSERT INTO produtos (ID_PROD, NOME_PROD, PRECO_PROD, CATEGORIA_PROD, QNT_PROD, DESC_PROD) VALUES (:1, :2, :3, :4, :5, :6)"
     
     try:
+        # Criptografar a descrição do produto antes de inseri-la no banco de dados
+        desc_criptografada = criptografar_hill(desc_prod, key_matrix)
+        
         # Executar a consulta SQL com os parâmetros fornecidos
-        cursor.execute(sql, (id_prod, nome_prod, preco_prod, categoria_prod, quantidade_prod, desc_prod))
+        cursor.execute(sql, (id_prod, nome_prod, preco_prod, categoria_prod, quantidade_prod, desc_criptografada))
         connection.commit()  # Confirmar a transação no banco de dados
         print("Produto cadastrado com sucesso.")  # Exibir mensagem de sucesso
 
@@ -132,13 +203,12 @@ def imprimir_tabela_lucro(tipo_lucro):
     print(Style.RESET_ALL)
 
 # Função para buscar um produto pelo nome e verificar se existe
-def buscar_produto(connection, nome_produto):
+def buscar_produto(connection, nome_produto, key_matrix):
     cursor = connection.cursor()  # Cria um cursor para executar comandos no banco de dados
 
     # Consulta SQL para buscar um produto pelo nome
     # Consulta SQL para buscar um produto pelo nome (case-insensitive)
     sql = "SELECT ID_PROD, NOME_PROD, PRECO_PROD, CATEGORIA_PROD, QNT_PROD, DESC_PROD FROM produtos WHERE UPPER(NOME_PROD) LIKE UPPER(:1)"
-
 
     try:
         # Executar a consulta
@@ -150,13 +220,16 @@ def buscar_produto(connection, nome_produto):
         if rows:
             print("Resultados da busca:")
             for row in rows:
+                # Descriptografar a descrição do produto
+                desc_descriptografada = descriptografar_hill(row[5], key_matrix)
+
                 # Exibir informações do produto encontrado
                 print("ID: ", row[0])
                 print("Nome: ", row[1])
                 print("Preço: ", row[2])
                 print("Categoria: ", row[3])
                 print("Quantidade: ", row[4])
-                print("Descrição: ", row[5])
+                print("Descrição: ", desc_descriptografada)  # Exibir descrição descriptografada
                 print()  # Adicionar uma linha em branco entre os produtos encontrados
             return True  # Indicar que o produto foi encontrado
         else:
@@ -168,25 +241,26 @@ def buscar_produto(connection, nome_produto):
         return False  # Indicar que houve um erro na busca
     finally:
         cursor.close()  # Fechar o cursor
-    
-def excluir_produto (connection, id_prod): # funçao para excluir produto 
-    cursor = connection.cursor()  # cria um cursor para executar comandos no banco de dados.          
 
-    # consulta sql para deletar um produto pelo id.
-    sql = "DELETE FROM PRODUTOS WHERE ID_PROD = : 1"
+# Função para excluir um produto pelo ID
+def excluir_produto(connection, id_prod):
+    cursor = connection.cursor()  # Cria um cursor para executar comandos no banco de dados.          
+
+    # Consulta SQL para excluir um produto pelo ID
+    sql = "DELETE FROM PRODUTOS WHERE ID_PROD = :1"
 
     try:
-        # executa a consulta.
-        cursor.execute (sql,(id_prod,))
-        # confirmar a transaçao do banco de dados.
-        connection.commit ()
-        if cursor.rowcount >0:
-            print(f"produto com id {id_prod} foi excluido com sucesso.") # exibir mensagem de sucesso.
+        # Executar a consulta
+        cursor.execute(sql, (id_prod,))
+        # Confirmar a transação no banco de dados
+        connection.commit()
+        if cursor.rowcount > 0:
+            print(f"Produto com ID {id_prod} foi excluído com sucesso.")  # Exibir mensagem de sucesso
         else:
-            print(f"produto com id {id_prod} nao foi encontrado.") # exibir mensagem se o produto nao for encontrado.
+            print(f"Produto com ID {id_prod} não foi encontrado.")  # Exibir mensagem se o produto não for encontrado
     except oracledb.Error as e: 
-        print("Erro ao excluir produto:", e) # exibir mensagem de erro.
-        connection.rollback () # reverter a transaçao em caso de erro.
+        print("Erro ao excluir produto:", e)  # Exibir mensagem de erro
+        connection.rollback()  # Reverter a transação em caso de erro
     finally:
         cursor.close()  # Fechar o cursor
 
@@ -199,6 +273,9 @@ try:
     connection = oracledb.connect(user=username, password=password, dsn=connect_string)  # Conectar ao banco de dados
     
     print("Sistema Papelaria\n")  # Exibir mensagem de boas-vindas
+
+    # Exemplo de matriz de chave para a cifra de Hill (2x2)
+    key_matrix = np.array([[3, 3], [2, 5]])
 
     while True:  # Loop principal do programa
         print("Selecione uma opção:")  # Exibir opções para o usuário
@@ -273,8 +350,8 @@ try:
             quantidade_prod = int(input("Inserir quantidade do produto em estoque: \n"))
             desc_prod = input(("Inserir a descrição do produto: \n"))
 
-            # Chamar a função para cadastrar o produto no banco de dados
-            cadastrar_produto(connection, cod_prod, nome_prod, preco_prod, categoria_prod, quantidade_prod, desc_prod)
+            # Chamar a função para cadastrar o produto no banco de dados com a descrição criptografada
+            cadastrar_produto(connection, cod_prod, nome_prod, preco_prod, categoria_prod, quantidade_prod, desc_prod, key_matrix)
 
         elif esc == 3:  # Se a opção escolhida for cadastrar custo
             print("Cadastrar custo.\n")  # Exibir mensagem para o usuário
@@ -288,24 +365,23 @@ try:
 
             # Chamar a função para cadastrar o custo no banco de dados
             cadastrar_custo(connection, id_prod, custo_prod, custo_adm, comissao_venda, imposto, lucro)
+
         elif esc == 4:  # Se a opção escolhida for buscar produto por nome
             print("Buscar produto por nome.\n")  # Exibir mensagem para o usuário
             # Solicitar nome do produto ao usuário
             nome_produto = input("Digite o nome do produto: ")
             # Verificar se o produto existe no banco de dados antes de exibir suas informações
-            if buscar_produto(connection, nome_produto):
+            if buscar_produto(connection, nome_produto, key_matrix):
                 # Se o produto existir, as informações já foram exibidas dentro da função buscar_produto_por_nome
-               pass
+                pass
             else:
-               print("O produto não está registrado no banco de dados.")
+                print("O produto não está registrado no banco de dados.")
 
-        elif esc == 5:
-            # solicitar id do produto ao usuario.
-            id_prod = int(input("Digite o id do produto que deseja excluir: "))
+        elif esc == 5:  # Se a opção escolhida for excluir produto
+            id_prod = int(input("Digite o ID do produto que deseja excluir: "))
 
-            # chamar a funçao para excluir produto com id especifico.
-            excluir_produto(connection,id_prod)
-
+            # Chamar a função para excluir o produto com ID específico
+            excluir_produto(connection, id_prod)
 
         elif esc == 6:  # Se a opção escolhida for sair
             break  # Encerrar o loop
@@ -320,7 +396,3 @@ finally:
         connection.close()  # Fechar a conexão com o banco de dados
 
 print("\nPrograma encerrado.")  # Exibir mensagem de encerramento do programa
-
-
-
-
