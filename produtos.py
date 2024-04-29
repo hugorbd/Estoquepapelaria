@@ -5,7 +5,6 @@ import numpy as np  # Importa o módulo numpy para lidar com operações de matr
 from sympy import Matrix  # Importa o módulo sympy para lidar com matrizes
 
 # Função para converter uma string em uma lista de valores numéricos
-# Função para converter uma string em uma lista de valores numéricos
 def string_para_numeros(texto, comprimento_chave):
     # Converter cada caractere em um número (exemplo: 'A' a 'Z' -> 0 a 25)
     texto = texto.upper().replace(" ", "")
@@ -70,7 +69,7 @@ def descriptografar_hill(texto_criptografado, matriz_chave):
     return texto_descriptografado
 
 
-# Função para cadastrar os custos no banco de dados com a descrição criptografada
+# Função para cadastrar os custos no banco de dados
 def cadastrar_custo(connection, id_prod, custo_prod, custo_adm, comissao_venda, imposto, lucro):
     cursor = connection.cursor()  # Cria um cursor para executar comandos no banco de dados
 
@@ -81,9 +80,9 @@ def cadastrar_custo(connection, id_prod, custo_prod, custo_adm, comissao_venda, 
         # Executar a consulta SQL com os parâmetros fornecidos
         cursor.execute(sql, (id_prod, custo_prod, custo_adm, comissao_venda, imposto, lucro))
         connection.commit()  # Confirmar a transação no banco de dados
-        print("Custos cadastrados com sucesso.")  # Exibir mensagem de sucesso
+        print("Custos cadastrados com sucesso. \n")  # Exibir mensagem de sucesso
     except oracledb.Error as e:
-        print("Erro ao cadastrar custos:", e)  # Em caso de erro, exibir mensagem de erro
+        print("Erro ao cadastrar custos: \n", e)  # Em caso de erro, exibir mensagem de erro
         connection.rollback()  # Reverter a transação em caso de erro
     finally:
         cursor.close()  # Fechar o cursor
@@ -110,10 +109,10 @@ def cadastrar_produto(connection, id_prod, nome_prod, preco_prod, categoria_prod
         print("Preço: ", preco_prod)
         print("Categoria: ", categoria_prod)
         print("Quantidade: ", quantidade_prod)
-        print("Descrição: ", desc_prod)
+        print("Descrição: \n", desc_prod)
         
     except oracledb.Error as e:
-        print("Erro ao cadastrar produto:", e)  # Em caso de erro, exibir mensagem de erro
+        print("Erro ao cadastrar produto: \n", e)  # Em caso de erro, exibir mensagem de erro
         connection.rollback()  # Reverter a transação em caso de erro
     finally:
         cursor.close()  # Fechar o cursor
@@ -138,10 +137,10 @@ def obter_dados_para_calculo_preco_venda(connection, id_prod):
             else:
                 return row
         else:
-            print("Não foi possível obter os dados para o cálculo do preço de venda.")
+            print("Não foi possível obter os dados para o cálculo do preço de venda.\n")
             return None
     except oracledb.Error as e:
-        print("Erro ao obter dados para o cálculo do preço de venda:", e)
+        print("Erro ao obter dados para o cálculo do preço de venda: \n", e)
         return None
     finally:
         cursor.close()  # Fechar o cursor
@@ -207,7 +206,6 @@ def buscar_produto(connection, nome_produto, key_matrix):
     cursor = connection.cursor()  # Cria um cursor para executar comandos no banco de dados
 
     # Consulta SQL para buscar um produto pelo nome
-    # Consulta SQL para buscar um produto pelo nome (case-insensitive)
     sql = "SELECT ID_PROD, NOME_PROD, PRECO_PROD, CATEGORIA_PROD, QNT_PROD, DESC_PROD FROM produtos WHERE UPPER(NOME_PROD) LIKE UPPER(:1)"
 
     try:
@@ -229,15 +227,15 @@ def buscar_produto(connection, nome_produto, key_matrix):
                 print("Preço: ", row[2])
                 print("Categoria: ", row[3])
                 print("Quantidade: ", row[4])
-                print("Descrição: ", desc_descriptografada)  # Exibir descrição descriptografada
+                print("Descrição: \n", desc_descriptografada)  # Exibir descrição descriptografada
                 print()  # Adicionar uma linha em branco entre os produtos encontrados
             return True  # Indicar que o produto foi encontrado
         else:
-            print("Nenhum produto encontrado com esse nome.")
+            print("Nenhum produto encontrado com esse nome.\n")
             return False  # Indicar que o produto não foi encontrado
 
     except oracledb.Error as e:
-        print("Erro ao buscar produto pelo nome:", e)
+        print("Erro ao buscar produto pelo nome:\n", e)
         return False  # Indicar que houve um erro na busca
     finally:
         cursor.close()  # Fechar o cursor
@@ -255,14 +253,15 @@ def excluir_produto(connection, id_prod):
         # Confirmar a transação no banco de dados
         connection.commit()
         if cursor.rowcount > 0:
-            print(f"Produto com ID {id_prod} foi excluído com sucesso.")  # Exibir mensagem de sucesso
+            print(f"Produto com ID {id_prod} foi excluído com sucesso.\n")  # Exibir mensagem de sucesso
         else:
-            print(f"Produto com ID {id_prod} não foi encontrado.")  # Exibir mensagem se o produto não for encontrado
+            print(f"Produto com ID {id_prod} não foi encontrado.\n")  # Exibir mensagem se o produto não for encontrado
     except oracledb.Error as e: 
-        print("Erro ao excluir produto:", e)  # Exibir mensagem de erro
+        print("Erro ao excluir produto:\n", e)  # Exibir mensagem de erro
         connection.rollback()  # Reverter a transação em caso de erro
     finally:
         cursor.close()  # Fechar o cursor
+
 # Função para alterar as informações de um produto
 def alterar_produto(connection, id_prod):
     cursor = connection.cursor()  # Cria um cursor para executar comandos no banco de dados
@@ -276,7 +275,7 @@ def alterar_produto(connection, id_prod):
         novo_preco = input("Inserir novo preço do produto (deixe em branco para manter o atual): ")
         nova_categoria = input("Inserir nova categoria do produto (deixe em branco para manter a atual): ")
         nova_quantidade = input("Inserir nova quantidade em estoque (deixe em branco para manter a atual): ")
-        nova_descricao = input("Inserir nova descrição do produto (deixe em branco para manter a atual): ")
+        nova_descricao = input("Inserir nova descrição do produto (deixe em branco para manter a atual): \n")
 
         # Consulta SQL para atualizar as informações do produto
         sql = "UPDATE produtos SET "
@@ -321,14 +320,14 @@ def alterar_produto(connection, id_prod):
                 # Executar a consulta de atualização
                 cursor.execute(sql, params)
                 connection.commit()  # Confirmar a transação no banco de dados
-                print(f"Produto com ID {id_prod} atualizado com sucesso.")
+                print(f"Produto com ID {id_prod} atualizado com sucesso.\n")
             except oracledb.Error as e:
-                print(f"Erro ao alterar o produto com ID {id_prod}:", e)
+                print(f"Erro ao alterar o produto com ID {id_prod}: {e}\n")
                 connection.rollback()  # Reverter a transação em caso de erro
         else:
-            print("Nenhuma atualização fornecida para o produto.")
+            print("Nenhuma atualização fornecida para o produto.\n")
     else:
-        print(f"Produto com ID {id_prod} não encontrado na tabela produtos.")
+        print(f"Produto com ID {id_prod} não encontrado na tabela produtos.\n")
 
     cursor.close()  # Fechar o cursor
 
@@ -339,138 +338,176 @@ connect_string = conexao.connect_string  # String de conexão ao banco de dados
 
 try:
     connection = oracledb.connect(user=username, password=password, dsn=connect_string)  # Conectar ao banco de dados
-    
-    print("Sistema Papelaria\n")  # Exibir mensagem de boas-vindas
+
+    # Mensagem de boas-vindas do sistema
+    print("Sistema Papelaria\n")
 
     # Exemplo de matriz de chave para a cifra de Hill (2x2)
     key_matrix = np.array([[3, 3], [2, 5]])
 
-    while True:  # Loop principal do programa
-        print("Selecione uma opção:")  # Exibir opções para o usuário
-        print("1. Calcular preço de venda")
-        print("2. Cadastrar produto")
-        print("3. Cadastrar custo")
-        print("4. Consultar produto")
-        print("5. Excluir produto")
-        print("6. Alterar produto")
-        print("7. Sair")
+    # Loop principal do programa
+    while True:
+        # Menu principal
+        print("Selecione uma opção:")
+        print("1. Custos")
+        print("2. Produtos")
+        print("3. Sair\n")
 
-        esc = int(input("Opção: "))  # Ler a opção escolhida pelo usuário
+        # Ler a escolha do usuário
+        escolha_principal = int(input("Opção: "))
 
-        if esc == 1:  # Se a opção escolhida for calcular preço de venda
-            # Obter o ID do produto do usuário
-            id_produto = int(input("Insira o ID do produto: "))
+        if escolha_principal == 1:
+            # Menu de custos
+            while True:
+                print("\nSistema Papelaria: Custos\n")
+                print("1. Cadastrar custo")
+                print("2. Calcular preço de venda")
+                print("3. Voltar ao Menu Principal\n")
 
-            # Verificar a existência do ID do produto na tabela PRECO
-            if verificar_existencia_id(connection, id_produto):
-                # Obter os dados necessários para o cálculo do preço de venda
-                dados_calculo = obter_dados_para_calculo_preco_venda(connection, id_produto)
-                if dados_calculo:
-                    custo_prod, custo_adm, comissao_venda, imposto, lucro = dados_calculo
-                    
-                    # Calcular o preço de venda
-                    preco_venda = custo_prod / (1 - ((custo_adm + comissao_venda + imposto + lucro) / 100))
+                # Ler a escolha do usuário
+                escolha_custos = int(input("Opção: "))
 
-                    # Calcular valores adicionais 
-                    B = custo_prod * 100 / preco_venda 
-                    C = preco_venda - custo_prod
-                    CC = C * 100 / preco_venda
-                    D = custo_adm / 100 * preco_venda
-                    E = comissao_venda / 100 * preco_venda
-                    F = imposto / 100 * preco_venda
-                    G = D + E + F
-                    GG = G * 100 / preco_venda
-                    H = C - G
-                    
-                    # Determinar o tipo de lucro
-                    r = (H / preco_venda) * 100
-                    if r <= 0:
-                        tipo_lucro = "Prejuízo"
-                    elif 0 < r <= 10:
-                        tipo_lucro = "Lucro baixo"
-                    elif 10 < r <= 20:
-                        tipo_lucro = "Lucro médio"
+                if escolha_custos == 1:
+                    # Cadastrar custo
+                    print("\nCadastrar custo")
+                    id_prod = int(input("Insira o ID do produto: "))
+                    custo_prod = float(input("Insira o custo do produto: "))
+                    custo_adm = float(input("Insira o custo administrativo: "))
+                    comissao_venda = float(input("Insira a comissão de venda: "))
+                    imposto = float(input("Insira o imposto: "))
+                    lucro = float(input("Insira o lucro: \n"))
+
+                    # Chama a função para cadastrar custo
+                    cadastrar_custo(connection, id_prod, custo_prod, custo_adm, comissao_venda, imposto, lucro)
+
+                elif escolha_custos == 2:
+                    # Calcular preço de venda
+                    print("\nCalcular preço de venda")
+                    id_produto = int(input("Insira o ID do produto: "))
+
+                    # Verificar a existência do ID do produto na tabela PRECO
+                    if verificar_existencia_id(connection, id_produto):
+                        # Obter os dados necessários para o cálculo do preço de venda
+                        dados_calculo = obter_dados_para_calculo_preco_venda(connection, id_produto)
+                        if dados_calculo:
+                            custo_prod, custo_adm, comissao_venda, imposto, lucro = dados_calculo
+
+                            # Calcular o preço de venda
+                            preco_venda = custo_prod / (1 - ((custo_adm + comissao_venda + imposto + lucro) / 100))
+
+                            # Calcular valores adicionais
+                            B = custo_prod * 100 / preco_venda
+                            C = preco_venda - custo_prod
+                            CC = C * 100 / preco_venda
+                            D = custo_adm / 100 * preco_venda
+                            E = comissao_venda / 100 * preco_venda
+                            F = imposto / 100 * preco_venda
+                            G = D + E + F
+                            GG = G * 100 / preco_venda
+                            H = C - G
+
+                            # Determinar o tipo de lucro
+                            r = (H / preco_venda) * 100
+                            if r <= 0:
+                                tipo_lucro = "Prejuízo"
+                            elif 0 < r <= 10:
+                                tipo_lucro = "Lucro baixo"
+                            elif 10 < r <= 20:
+                                tipo_lucro = "Lucro médio"
+                            else:
+                                tipo_lucro = "Lucro alto\n"
+
+                            # Imprimir os resultados
+                            print("Descrição                             Valor                      %")
+                            print(f"A. Preço de Venda                     {preco_venda:.2f}        100%")
+                            print(f"B. Custo de Aquisição (Fornecedor)    {custo_prod:.2f}         {B:.2f}%")
+                            print(f"C. Receita Bruta (A-B)                {C:.2f}                  {CC:.2f}%")
+                            print(f"D. Custo Fixo/Administrativo          {D:.2f}                  {custo_adm:.2f}%")
+                            print(f"E. Comissão de Vendas                 {E:.2f}                  {comissao_venda:.2f}%")
+                            print(f"F. Imposto                            {F:.2f}                   {imposto:.2f}%")
+                            print(f"G. Outros custos (D+E+F)              {G:.2f}                  {GG:.2f}%")
+                            print(f"H. Rentabilidade (C-G)                {H:.2f}                  {r:.2f}% - {tipo_lucro}\n")
+
+                            # Imprimir tabela de lucro com formatação colorida
+                            imprimir_tabela_lucro(tipo_lucro)
                     else:
-                        tipo_lucro = "Lucro alto"
-                    
-                    # Imprimir os resultados 
-                    print("Descrição                             Valor                      %")
-                    print(f"A. Preço de Venda                     {preco_venda:.2f}        100%")
-                    print(f"B. Custo de Aquisição (Fornecedor)    {custo_prod:.2f}         {B:.2f}%")
-                    print(f"C. Receita Bruta (A-B)                {C:.2f}                  {CC:.2f}%")
-                    print(f"D. Custo Fixo/Administrativo          {D:.2f}                  {custo_adm:.2f}%")
-                    print(f"E. Comissão de Vendas                 {E:.2f}                  {comissao_venda:.2f}%")
-                    print(f"F. Imposto                           {F:.2f}                   {imposto:.2f}%")
-                    print(f"G. Outros custos (D+E+F)              {G:.2f}                  {GG:.2f}%")
-                    print(f"H. Rentabilidade (C-G)                {H:.2f}                  {r:.2f}% - {tipo_lucro}")
+                        print("O ID do produto não está registrado.\n")
 
-                    # Imprimir tabela de lucro com formatação colorida
-                    imprimir_tabela_lucro(tipo_lucro)
-            else:
-                print("O ID do produto não está registrado.")  # Exibir mensagem se o ID do produto não estiver registrado
+                elif escolha_custos == 3:
+                    # Voltar ao menu principal
+                    break
+                else:
+                    print("Opção inválida. Por favor, escolha uma das opções disponíveis.\n")
 
-        elif esc == 2:  # Se a opção escolhida for cadastrar produto
-            print("Cadastrar produto.\n")  # Exibir mensagem para o usuário
-            # Solicitar informações do produto ao usuário
-            cod_prod = int(input("Inserir o código do produto: \n"))
-            nome_prod = input("Inserir nome do produto: \n")
-            preco_prod = float(input("Inserir o preço de venda do produto: \n"))
-            categoria_prod = input("Inserir a categoria do produto: \n")
-            quantidade_prod = int(input("Inserir quantidade do produto em estoque: \n"))
-            desc_prod = input(("Inserir a descrição do produto: \n"))
+        elif escolha_principal == 2:
+            # Menu de produtos
+            while True:
+                print("\nSistema Papelaria: Produtos\n")
+                print("1. Cadastrar produto")
+                print("2. Consultar produto")
+                print("3. Excluir produto")
+                print("4. Alterar produto")
+                print("5. Voltar ao Menu Principal\n")
 
-            # Chamar a função para cadastrar o produto no banco de dados com a descrição criptografada
-            cadastrar_produto(connection, cod_prod, nome_prod, preco_prod, categoria_prod, quantidade_prod, desc_prod, key_matrix)
+                # Ler a escolha do usuário
+                escolha_produtos = int(input("Opção: "))
 
-        elif esc == 3:  # Se a opção escolhida for cadastrar custo
-            print("Cadastrar custo.\n")  # Exibir mensagem para o usuário
-            # Solicitar informações do custo ao usuário
-            id_prod = int(input("Inserir o código do produto: \n"))
-            custo_prod = float(input("Custo do produto: "))
-            custo_adm = float(input("Custo administrativo: "))
-            comissao_venda = float(input("Comissão de venda: "))
-            imposto = float(input("Imposto: "))
-            lucro = float(input("Lucro: "))
+                if escolha_produtos == 1:
+                    # Cadastrar produto
+                    print("\nCadastrar produto")
+                    id_prod = int(input("Insira o ID do produto: "))
+                    nome_prod = input("Insira o nome do produto: ")
+                    preco_prod = float(input("Insira o preço do produto: "))
+                    categoria_prod = input("Insira a categoria do produto: ")
+                    quantidade_prod = int(input("Insira a quantidade em estoque: "))
+                    desc_prod = input("Insira a descrição do produto: \n")
 
-            # Chamar a função para cadastrar o custo no banco de dados
-            cadastrar_custo(connection, id_prod, custo_prod, custo_adm, comissao_venda, imposto, lucro)
+                    # Chama a função para cadastrar o produto
+                    cadastrar_produto(connection, id_prod, nome_prod, preco_prod, categoria_prod, quantidade_prod, desc_prod, key_matrix)
 
-        elif esc == 4:  # Se a opção escolhida for buscar produto por nome
-            print("Buscar produto por nome.\n")  # Exibir mensagem para o usuário
-            # Solicitar nome do produto ao usuário
-            nome_produto = input("Digite o nome do produto: ")
-            # Verificar se o produto existe no banco de dados antes de exibir suas informações
-            if buscar_produto(connection, nome_produto, key_matrix):
-                # Se o produto existir, as informações já foram exibidas dentro da função buscar_produto_por_nome
-                pass
-            else:
-                print("O produto não está registrado no banco de dados.")
+                elif escolha_produtos == 2:
+                    # Consultar produto
+                    print("\nConsultar produto")
+                    nome_produto = input("Digite o nome do produto: \n")
 
-        elif esc == 5:  # Se a opção escolhida for excluir produto
-            print("Excluir produto. \n")
-            id_prod = int(input("Digite o ID do produto que deseja excluir: "))
+                    # Verificar se o produto existe no banco de dados
+                    if buscar_produto(connection, nome_produto, key_matrix):
+                        pass
+                    else:
+                        print("Nenhum produto encontrado com esse nome.\n")
 
-            # Chamar a função para excluir o produto com ID específico
-            excluir_produto(connection, id_prod)
-        
-        elif esc == 6:
-            print("Alterar produto.\n")  # Exibir mensagem para o usuário
-            id_prod = int(input("Insira o ID do produto que deseja alterar: "))
-            alterar_produto(connection, id_prod)
+                elif escolha_produtos == 3:
+                    # Excluir produto
+                    print("\nExcluir produto")
+                    id_prod = int(input("Insira o ID do produto que deseja excluir: \n"))
 
-        elif esc == 7:  # Se a opção escolhida for sair
-            break  # Encerrar o loop
+                    # Chama a função para excluir o produto com ID específico
+                    excluir_produto(connection, id_prod)
+
+                elif escolha_produtos == 4:
+                    # Alterar produto
+                    print("\nAlterar produto")
+                    id_prod = int(input("Insira o ID do produto que deseja alterar: \n"))
+                    alterar_produto(connection, id_prod)
+
+                elif escolha_produtos == 5:
+                    # Voltar ao menu principal
+                    break
+                else:
+                    print("Opção inválida. Por favor, escolha uma das opções disponíveis.\n")
+
+        elif escolha_principal == 3:
+            # Encerrar o programa
+            break
         else:
-            print("Opção inválida. Por favor, escolha uma das opções disponíveis.")  # Exibir mensagem de opção inválida
+            print("Opção inválida. Por favor, escolha uma das opções disponíveis.\n")
 
 except oracledb.Error as e:
-    print("Erro ao conectar ao banco de dados Oracle:", e)  # Exibir mensagem de erro em caso de falha na conexão
+    print("Erro ao conectar ao banco de dados Oracle: \n", e)
 
 finally:
     if 'connection' in locals():
-        connection.close()  # Fechar a conexão com o banco de dados
+        connection.close()
 
 print("\nPrograma encerrado.")  # Exibir mensagem de encerramento do programa
-
-
 
