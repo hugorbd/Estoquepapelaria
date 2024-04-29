@@ -34,7 +34,7 @@ Encerra a execução do programa.
 3. Siga as instruções na tela para realizar as operações desejadas.
 
 ## Autores
-Ana Julia Matozo Rodriguess
+Ana Julia Matozo Rodrigues
 Hugo Daniel Bosada Rodrigues
 Letícia Lima da Silva
 Murilo Euphrasio Brito
