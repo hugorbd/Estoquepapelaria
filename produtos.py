@@ -263,6 +263,74 @@ def excluir_produto(connection, id_prod):
         connection.rollback()  # Reverter a transação em caso de erro
     finally:
         cursor.close()  # Fechar o cursor
+# Função para alterar as informações de um produto
+def alterar_produto(connection, id_prod):
+    cursor = connection.cursor()  # Cria um cursor para executar comandos no banco de dados
+
+    # Verificar se o ID do produto existe na tabela produtos
+    if verificar_existencia_id(connection, id_prod):
+        print(f"Alterando informações do produto com ID {id_prod}.\n")
+
+        # Solicitar as novas informações ao usuário
+        novo_nome = input("Inserir novo nome do produto (deixe em branco para manter o atual): ")
+        novo_preco = input("Inserir novo preço do produto (deixe em branco para manter o atual): ")
+        nova_categoria = input("Inserir nova categoria do produto (deixe em branco para manter a atual): ")
+        nova_quantidade = input("Inserir nova quantidade em estoque (deixe em branco para manter a atual): ")
+        nova_descricao = input("Inserir nova descrição do produto (deixe em branco para manter a atual): ")
+
+        # Consulta SQL para atualizar as informações do produto
+        sql = "UPDATE produtos SET "
+
+        # Lista para armazenar os campos e valores a serem atualizados
+        updates = []
+        # Adicionar atualizações de cada campo fornecido pelo usuário
+        if novo_nome:
+            updates.append(f"NOME_PROD = :nome")
+        if novo_preco:
+            updates.append(f"PRECO_PROD = :preco")
+        if nova_categoria:
+            updates.append(f"CATEGORIA_PROD = :categoria")
+        if nova_quantidade:
+            updates.append(f"QNT_PROD = :quantidade")
+        if nova_descricao:
+            # Criptografar a nova descrição se fornecida
+            nova_descricao_criptografada = criptografar_hill(nova_descricao, key_matrix)
+            updates.append(f"DESC_PROD = :descricao")
+
+        # Verificar se houve atualizações
+        if updates:
+            # Juntar as atualizações em uma string para a consulta
+            sql += ", ".join(updates)
+            # Completar a consulta com a cláusula WHERE para identificar o produto
+            sql += " WHERE ID_PROD = :id"
+
+            # Dicionário de parâmetros para a consulta
+            params = {"id": id_prod}
+            if novo_nome:
+                params["nome"] = novo_nome
+            if novo_preco:
+                params["preco"] = float(novo_preco)
+            if nova_categoria:
+                params["categoria"] = nova_categoria
+            if nova_quantidade:
+                params["quantidade"] = int(nova_quantidade)
+            if nova_descricao:
+                params["descricao"] = nova_descricao_criptografada
+
+            try:
+                # Executar a consulta de atualização
+                cursor.execute(sql, params)
+                connection.commit()  # Confirmar a transação no banco de dados
+                print(f"Produto com ID {id_prod} atualizado com sucesso.")
+            except oracledb.Error as e:
+                print(f"Erro ao alterar o produto com ID {id_prod}:", e)
+                connection.rollback()  # Reverter a transação em caso de erro
+        else:
+            print("Nenhuma atualização fornecida para o produto.")
+    else:
+        print(f"Produto com ID {id_prod} não encontrado na tabela produtos.")
+
+    cursor.close()  # Fechar o cursor
 
 # Informações de conexão ao banco de dados
 username = conexao.username  # Nome de usuário para conexão
@@ -284,7 +352,8 @@ try:
         print("3. Cadastrar custo")
         print("4. Consultar produto")
         print("5. Excluir produto")
-        print("6. Sair")
+        print("6. Alterar produto")
+        print("7. Sair")
 
         esc = int(input("Opção: "))  # Ler a opção escolhida pelo usuário
 
@@ -378,12 +447,18 @@ try:
                 print("O produto não está registrado no banco de dados.")
 
         elif esc == 5:  # Se a opção escolhida for excluir produto
+            print("Excluir produto. \n")
             id_prod = int(input("Digite o ID do produto que deseja excluir: "))
 
             # Chamar a função para excluir o produto com ID específico
             excluir_produto(connection, id_prod)
+        
+        elif esc == 6:
+            print("Alterar produto.\n")  # Exibir mensagem para o usuário
+            id_prod = int(input("Insira o ID do produto que deseja alterar: "))
+            alterar_produto(connection, id_prod)
 
-        elif esc == 6:  # Se a opção escolhida for sair
+        elif esc == 7:  # Se a opção escolhida for sair
             break  # Encerrar o loop
         else:
             print("Opção inválida. Por favor, escolha uma das opções disponíveis.")  # Exibir mensagem de opção inválida
@@ -396,3 +471,6 @@ finally:
         connection.close()  # Fechar a conexão com o banco de dados
 
 print("\nPrograma encerrado.")  # Exibir mensagem de encerramento do programa
+
+
+
