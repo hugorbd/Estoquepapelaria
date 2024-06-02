@@ -337,7 +337,7 @@ def adicionar_no_carrinho(connection, id_carrinho, id_prod, nome_prod, preco_pro
     cursor = connection.cursor()  # Cria um cursor para executar comandos no banco de dados
 
     # Consulta SQL para inserir um novo produto
-    sql = "INSERT INTO produtos (ID_CARRINHO, ID_PROD, NOME_PROD, PRECO_PROD, QNT_COMPRA) VALUES (:1, :2, :3, :4, :5)"
+    sql = "INSERT INTO carrinho (ID_CARRINHO, ID_PROD, NOME_PROD, PRECO_PROD, QNT_COMPRA) VALUES (:1, :2, :3, :4, :5)"
 
     try:  
         # Executar a consulta SQL com os parâmetros fornecidos
@@ -350,6 +350,44 @@ def adicionar_no_carrinho(connection, id_carrinho, id_prod, nome_prod, preco_pro
         connection.rollback()  # Reverter a transação em caso de erro
     finally:
         cursor.close()  # Fechar o cursor
+def buscar_produto_por_id(connection, id_prod):
+    cursor = connection.cursor()
+
+    sql = "SELECT NOME_PROD, PRECO_PROD FROM produtos WHERE ID_PROD = :1"
+
+    try:
+        cursor.execute(sql, (id_prod,))
+        produto = cursor.fetchone()
+        return produto  # Retorna uma tupla (nome_prod, preco_prod) ou None se não encontrado
+
+    except oracledb.Error as e:
+        print("Erro ao buscar produto: \n", e)
+        return None
+
+    finally:
+        cursor.close()
+
+def verificar_existencia_id_carrinho(connection, id_carrinho):
+    cursor = connection.cursor()  # Cria um cursor para executar comandos no banco de dados
+
+    # Consulta SQL para verificar a existência do ID do carrinho na tabela CARRINHO
+    sql = "SELECT 1 FROM CARRINHO WHERE ID_CARRINHO = :1"
+
+    try:
+        # Executar a consulta
+        cursor.execute(sql, (id_carrinho,))
+
+        # Verificar se há alguma linha retornada pela consulta
+        if cursor.fetchone():
+            return True  # ID do produto existe na tabela CARRINHO
+        else:
+            return False  # ID do produto não existe na tabela CARRINHO
+    except oracledb.Error as e:
+        print("Erro ao verificar existência do ID do carrinho:", e)
+        return False
+    finally:
+        cursor.close()  # Fechar o cursor
+
 
 # Informações de conexão ao banco de dados
 username = conexao.username  # Nome de usuário para conexão
@@ -517,11 +555,11 @@ try:
                 else:
                     print("Opção inválida. Por favor, escolha uma das opções disponíveis.\n")
 
-        elif escolha_principal == 3:
+        if escolha_principal == 3:
             # Vendas
             # Consultar produto
             escolha_vendas = 0
-            while(escolha_vendas != 3):
+            while escolha_vendas != 3:
                 print("\nConsultar produto para adicionar ao carrinho")
                 nome_produto = input("Digite o nome do produto: \n")
 
@@ -531,7 +569,6 @@ try:
                 else:
                     print("Nenhum produto encontrado com esse nome.\n")
                 
-                
                 print("1. Adicionar produto ao carrinho")
                 print("2. Buscar outro produto")
                 print("3. Sair")
@@ -539,19 +576,37 @@ try:
                 escolha_vendas = int(input("Opção: "))
                 if escolha_vendas == 1:
                     # Adicionar produto no carrinho
-                    #por aqui as coisas pra adicionar
+                    while True:
+                        id_carrinho = int(input("Digite o id do carrinho: "))
+                        
+                        # Verificar se o ID do carrinho já existe
+                        if verificar_existencia_id_carrinho(connection, id_carrinho):
+                            print("ID do carrinho já existe. Por favor, forneça um ID diferente.")
+                        else:
+                            break
+
                     id_prod = int(input("Digite o id do produto encontrado: "))
                     qnt_compra = int(input("Quanto desse produto deseja adicionar ao carrinho: "))
-                    adicionar_no_carrinho(id_prod, qnt_compra)
+
+                    produto = buscar_produto_por_id(connection, id_prod)
+                    if produto:
+                        nome_prod, preco_prod = produto
+                        adicionar_no_carrinho(connection, id_carrinho, id_prod, nome_prod, preco_prod, qnt_compra)
+                    else:
+                        print("Produto com ID especificado não encontrado.")
 
                     print("1. Fazer nova busca")
                     print("2. Finalizar venda")
+                    print("3. Cancelar venda")
                     escolha_add = int(input("Opção: "))
                     if escolha_add == 1:
                         # Sair para retornar ao while de busca
                         continue
                     elif escolha_add == 2:
-                        # Finalizar venda
+                        # Finalizar venda (incompleto)
+                        break
+                    elif escolha_add == 3:
+                        # Cancelar a venda
                         break
                     break
                 elif escolha_vendas == 2:
@@ -560,12 +615,11 @@ try:
                 elif escolha_vendas == 3:
                     # Voltar ao menu principal
                     break
-
         elif escolha_principal == 4:
-            # Encerrar o programa
-            break
+                # Encerrar o programa
+                    break
         else:
-            print("Opção inválida. Por favor, escolha uma das opções disponíveis.\n")
+            print("Opção inválida. Por favor, escolha uma das opções disponíveis.\n")        
 
 except oracledb.Error as e:
     print("Erro ao conectar ao banco de dados Oracle: \n", e)
