@@ -6,5 +6,6 @@ Convite de acesso - https://trello.com/invite/b/1IGGrcmc/ATTI44b953813bee9c62c17
 
 Link de acesso - https://trello.com/b/1IGGrcmc
 
-![image](https://github.com/hugorbd/Estoquepapelaria/assets/146857878/858a5032-5aa9-4cc5-9514-e8e149cd07b2)
+![image](https://github.com/hugorbd/Estoquepapelaria/assets/146857878/d2357d78-0f3c-4b90-b6c0-de6131191ee4)
+
 
