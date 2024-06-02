@@ -4,6 +4,7 @@ from colorama import Fore, Style  # Importa módulos para estilização de texto
 import numpy as np  # Importa o módulo numpy para lidar com operações de matriz
 from sympy import Matrix  # Importa o módulo sympy para lidar com matrizes
 
+
 # Função para converter uma string em uma lista de valores numéricos
 def string_para_numeros(texto, comprimento_chave):
     # Converter cada caractere em um número (exemplo: 'A' a 'Z' -> 0 a 25)
@@ -333,15 +334,15 @@ def alterar_produto(connection, id_prod):
 
 
 #Função adicionar produto na sacola
-def adicionar_no_carrinho(connection, id_carrinho, id_prod, nome_prod, preco_prod, qnt_compra):
+def adicionar_venda(connection, id_venda, id_prod, nome_prod, preco_prod, qnt_compra):
     cursor = connection.cursor()  # Cria um cursor para executar comandos no banco de dados
 
     # Consulta SQL para inserir um novo produto
-    sql = "INSERT INTO carrinho (ID_CARRINHO, ID_PROD, NOME_PROD, PRECO_PROD, QNT_COMPRA) VALUES (:1, :2, :3, :4, :5)"
+    sql = "INSERT INTO VENDA (ID_VENDA, ID_PROD, NOME_PROD, PRECO_PROD, QNT_COMPRA) VALUES (:1, :2, :3, :4, :5)"
 
     try:  
         # Executar a consulta SQL com os parâmetros fornecidos
-        cursor.execute(sql, (id_carrinho, id_prod, nome_prod, preco_prod, qnt_compra))
+        cursor.execute(sql, (id_venda, id_prod, nome_prod, preco_prod, qnt_compra))
         connection.commit()  # Confirmar a transação no banco de dados
         print("Produto cadastrado com sucesso.")  # Exibir mensagem de sucesso  
 
@@ -367,27 +368,75 @@ def buscar_produto_por_id(connection, id_prod):
     finally:
         cursor.close()
 
-def verificar_existencia_id_carrinho(connection, id_carrinho):
+def verificar_existencia_id_venda(connection, id_venda):
     cursor = connection.cursor()  # Cria um cursor para executar comandos no banco de dados
 
-    # Consulta SQL para verificar a existência do ID do carrinho na tabela CARRINHO
-    sql = "SELECT 1 FROM CARRINHO WHERE ID_CARRINHO = :1"
+    # Consulta SQL para verificar a existência do ID da venda na tabela VENDA
+    sql = "SELECT 1 FROM VENDA WHERE ID_VENDA = :1"
 
     try:
         # Executar a consulta
-        cursor.execute(sql, (id_carrinho,))
+        cursor.execute(sql, (id_venda,))
 
         # Verificar se há alguma linha retornada pela consulta
         if cursor.fetchone():
-            return True  # ID do produto existe na tabela CARRINHO
+            return True  # ID do produto existe na tabela VENDA
         else:
-            return False  # ID do produto não existe na tabela CARRINHO
+            return False  # ID do produto não existe na tabela VENDA
     except oracledb.Error as e:
-        print("Erro ao verificar existência do ID do carrinho:", e)
+        print("Erro ao verificar existência do ID da venda:", e)
         return False
     finally:
         cursor.close()  # Fechar o cursor
+# Função para calcular o total da compra
+def calcular_total_venda(connection, id_venda):
+    cursor = connection.cursor()  # Cria um cursor para executar comandos no banco de dados
 
+    # Consulta SQL para obter o total da compra
+    sql = "SELECT SUM(PRECO_PROD * QNT_COMPRA) FROM VENDA WHERE ID_VENDA = :1"
+
+    try:
+        # Executar a consulta
+        cursor.execute(sql, (id_venda,))
+        total = cursor.fetchone()[0]
+        if total:
+            return total
+        else:
+            return 0  # Retorna 0 se não houver produtos na venda
+
+    except oracledb.Error as e:
+        print("Erro ao calcular total da venda:", e)
+        return None
+    finally:
+        cursor.close()  # Fechar o cursor
+
+# Função para finalizar a compra
+def finalizar_compra(connection, id_venda):
+    cursor = connection.cursor()  # Cria um cursor para executar comandos no banco de dados
+
+    try:
+        # Calcular o total da compra
+        total = calcular_total_venda(connection, id_venda)
+
+        if total is not None:
+            if total == 0:
+                print("O carrinho está vazio. Não é possível finalizar a compra.")
+            else:
+                # Atualizar o estoque
+                cursor.execute("SELECT ID_PROD, QNT_COMPRA FROM VENDA WHERE ID_VENDA = :1", (id_venda,))
+                items_venda = cursor.fetchall()
+                for item in items_venda:
+                    id_prod, qnt_compra = item
+                    cursor.execute("UPDATE PRODUTOS SET QNT_PROD = QNT_PROD - :1 WHERE ID_PROD = :2", (qnt_compra, id_prod))
+
+        else:
+            print("Erro ao finalizar a compra. Não foi possível calcular o total.")
+
+    except oracledb.Error as e:
+        print("Erro ao finalizar a compra:", e)
+        connection.rollback()  # Reverter a transação em caso de erro
+    finally:
+        cursor.close()  # Fechar o cursor
 
 # Informações de conexão ao banco de dados
 username = conexao.username  # Nome de usuário para conexão
@@ -556,65 +605,76 @@ try:
                     print("Opção inválida. Por favor, escolha uma das opções disponíveis.\n")
 
         if escolha_principal == 3:
-            # Vendas
-            # Consultar produto
-            escolha_vendas = 0
-            while escolha_vendas != 3:
-                print("\nConsultar produto para adicionar ao carrinho")
-                nome_produto = input("Digite o nome do produto: \n")
+                # Vendas
+                # Consultar produto
+                escolha_vendas = 0
+                while escolha_vendas != 3:
+                    print("\nConsultar produto para adicionar a venda")
+                    nome_produto = input("Digite o nome do produto: \n")
 
-                # Verificar se o produto existe no banco de dados
-                if buscar_produto(connection, nome_produto, key_matrix):
-                    pass
-                else:
-                    print("Nenhum produto encontrado com esse nome.\n")
-                
-                print("1. Adicionar produto ao carrinho")
-                print("2. Buscar outro produto")
-                print("3. Sair")
-                
-                escolha_vendas = int(input("Opção: "))
-                if escolha_vendas == 1:
-                    # Adicionar produto no carrinho
-                    while True:
-                        id_carrinho = int(input("Digite o id do carrinho: "))
-                        
-                        # Verificar se o ID do carrinho já existe
-                        if verificar_existencia_id_carrinho(connection, id_carrinho):
-                            print("ID do carrinho já existe. Por favor, forneça um ID diferente.")
-                        else:
-                            break
-
-                    id_prod = int(input("Digite o id do produto encontrado: "))
-                    qnt_compra = int(input("Quanto desse produto deseja adicionar ao carrinho: "))
-
-                    produto = buscar_produto_por_id(connection, id_prod)
-                    if produto:
-                        nome_prod, preco_prod = produto
-                        adicionar_no_carrinho(connection, id_carrinho, id_prod, nome_prod, preco_prod, qnt_compra)
+                    # Verificar se o produto existe no banco de dados
+                    if buscar_produto(connection, nome_produto, key_matrix):
+                        pass
                     else:
-                        print("Produto com ID especificado não encontrado.")
+                        print("Nenhum produto encontrado com esse nome.\n")
+                    
+                    print("1. Adicionar venda")
+                    print("2. Buscar outro produto")
+                    print("3. Sair")
+                    
+                    escolha_vendas = int(input("Opção: "))
+                    if escolha_vendas == 1:
+                        # Adicionar produto na venda
+                        while True:
+                            id_venda = int(input("Digite o id da venda: "))
+                            
+                            # Verificar se o ID da venda já existe
+                            if verificar_existencia_id_venda(connection, id_venda):
+                                print("ID da venda já existe. Por favor, forneça um ID diferente.")
+                            else:
+                                break
 
-                    print("1. Fazer nova busca")
-                    print("2. Finalizar venda")
-                    print("3. Cancelar venda")
-                    escolha_add = int(input("Opção: "))
-                    if escolha_add == 1:
-                        # Sair para retornar ao while de busca
+                        id_prod = int(input("Digite o id do produto encontrado: "))
+                        qnt_compra = int(input("Quanto desse produto deseja vender: "))
+
+                        produto = buscar_produto_por_id(connection, id_prod)
+                        if produto:
+                            nome_prod, preco_prod = produto
+                            adicionar_venda(connection, id_venda, id_prod, nome_prod, preco_prod, qnt_compra)
+                        else:
+                            print("Produto com ID especificado não encontrado.")
+
+                        
+                        print("1. Finalizar venda")
+                        print("2. Cancelar venda")
+                        escolha_add = int(input("Opção: "))
+                       
+                        if escolha_add == 1:
+                            # Finalizar venda
+                            print("Finalizando venda...")
+
+                            # Calcular o valor total da compra
+                            valor_total = calcular_total_venda(connection, id_venda)
+
+                            # Exibir o valor total da compra
+                            print(f"Valor total da compra: R${valor_total:.2f}")
+
+                            # Concluir a transação
+                            finalizar_compra(connection, id_venda)
+
+                            print("Venda finalizada.")
+                            break
+                        elif escolha_add == 2:
+                            # Cancelar a venda
+                            print("Venda cancelada.")
+                            break
+                        break
+                    elif escolha_vendas == 2:
+                        # Escolher outro produto
                         continue
-                    elif escolha_add == 2:
-                        # Finalizar venda (incompleto)
+                    elif escolha_vendas == 3:
+                        # Voltar ao menu principal
                         break
-                    elif escolha_add == 3:
-                        # Cancelar a venda
-                        break
-                    break
-                elif escolha_vendas == 2:
-                    # Escolher outro produto
-                    continue
-                elif escolha_vendas == 3:
-                    # Voltar ao menu principal
-                    break
         elif escolha_principal == 4:
                 # Encerrar o programa
                     break
