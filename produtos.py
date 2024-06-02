@@ -331,6 +331,26 @@ def alterar_produto(connection, id_prod):
 
     cursor.close()  # Fechar o cursor
 
+
+#Função adicionar produto na sacola
+def adicionar_no_carrinho(connection, id_carrinho, id_prod, nome_prod, preco_prod, qnt_compra):
+    cursor = connection.cursor()  # Cria um cursor para executar comandos no banco de dados
+
+    # Consulta SQL para inserir um novo produto
+    sql = "INSERT INTO produtos (ID_CARRINHO, ID_PROD, NOME_PROD, PRECO_PROD, QNT_COMPRA) VALUES (:1, :2, :3, :4, :5)"
+
+    try:  
+        # Executar a consulta SQL com os parâmetros fornecidos
+        cursor.execute(sql, (id_carrinho, id_prod, nome_prod, preco_prod, qnt_compra))
+        connection.commit()  # Confirmar a transação no banco de dados
+        print("Produto cadastrado com sucesso.")  # Exibir mensagem de sucesso  
+
+    except oracledb.Error as e:
+        print("Erro ao cadastrar produto: \n", e)  # Em caso de erro, exibir mensagem de erro
+        connection.rollback()  # Reverter a transação em caso de erro
+    finally:
+        cursor.close()  # Fechar o cursor
+
 # Informações de conexão ao banco de dados
 username = conexao.username  # Nome de usuário para conexão
 password = conexao.password  # Senha para conexão
@@ -351,7 +371,8 @@ try:
         print("Selecione uma opção:")
         print("1. Custos")
         print("2. Produtos")
-        print("3. Sair\n")
+        print("3. Vendas")
+        print("4. Sair\n")
 
         # Ler a escolha do usuário
         escolha_principal = int(input("Opção: "))
@@ -497,6 +518,50 @@ try:
                     print("Opção inválida. Por favor, escolha uma das opções disponíveis.\n")
 
         elif escolha_principal == 3:
+            # Vendas
+            # Consultar produto
+            escolha_vendas = 0
+            while(escolha_vendas != 3):
+                print("\nConsultar produto para adicionar ao carrinho")
+                nome_produto = input("Digite o nome do produto: \n")
+
+                # Verificar se o produto existe no banco de dados
+                if buscar_produto(connection, nome_produto, key_matrix):
+                    pass
+                else:
+                    print("Nenhum produto encontrado com esse nome.\n")
+                
+                
+                print("1. Adicionar produto ao carrinho")
+                print("2. Buscar outro produto")
+                print("3. Sair")
+                
+                escolha_vendas = int(input("Opção: "))
+                if escolha_vendas == 1:
+                    # Adicionar produto no carrinho
+                    #por aqui as coisas pra adicionar
+                    id_prod = int(input("Digite o id do produto encontrado: "))
+                    qnt_compra = int(input("Quanto desse produto deseja adicionar ao carrinho: "))
+                    adicionar_no_carrinho(id_prod, qnt_compra)
+
+                    print("1. Fazer nova busca")
+                    print("2. Finalizar venda")
+                    escolha_add = int(input("Opção: "))
+                    if escolha_add == 1:
+                        # Sair para retornar ao while de busca
+                        continue
+                    elif escolha_add == 2:
+                        # Finalizar venda
+                        break
+                    break
+                elif escolha_vendas == 2:
+                    # Escolher outro produto
+                    continue
+                elif escolha_vendas == 3:
+                    # Voltar ao menu principal
+                    break
+
+        elif escolha_principal == 4:
             # Encerrar o programa
             break
         else:
