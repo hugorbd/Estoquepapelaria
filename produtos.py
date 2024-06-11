@@ -344,7 +344,7 @@ def adicionar_venda(connection, id_venda, id_prod, nome_prod, preco_prod, qnt_co
         # Executar a consulta SQL com os parâmetros fornecidos
         cursor.execute(sql, (id_venda, id_prod, nome_prod, preco_prod, qnt_compra))
         connection.commit()  # Confirmar a transação no banco de dados
-        print("Produto cadastrado com sucesso.")  # Exibir mensagem de sucesso  
+        print("Informaçoes salvas.")  # Exibir mensagem de sucesso  
 
     except oracledb.Error as e:
         print("Erro ao cadastrar produto: \n", e)  # Em caso de erro, exibir mensagem de erro
@@ -449,7 +449,7 @@ try:
     # Mensagem de boas-vindas do sistema
     print("Sistema Papelaria\n")
 
-    # Exemplo de matriz de chave para a cifra de Hill (2x2)
+    #Matriz de chave para a cifra de Hill (2x2)
     key_matrix = np.array([[3, 3], [2, 5]])
 
     # Loop principal do programa
@@ -480,10 +480,10 @@ try:
                     print("\nCadastrar custo")
                     id_prod = int(input("Insira o ID do produto: "))
                     custo_prod = float(input("Insira o custo do produto: "))
-                    custo_adm = float(input("Insira o custo administrativo: "))
-                    comissao_venda = float(input("Insira a comissão de venda: "))
-                    imposto = float(input("Insira o imposto: "))
-                    lucro = float(input("Insira o lucro: \n"))
+                    custo_adm = float(input("Insira o custo administrativo em %: "))
+                    comissao_venda = float(input("Insira a comissão de venda em %: "))
+                    imposto = float(input("Insira o imposto em %: "))
+                    lucro = float(input("Insira o lucro em %: \n"))
 
                     # Chama a função para cadastrar custo
                     cadastrar_custo(connection, id_prod, custo_prod, custo_adm, comissao_venda, imposto, lucro)
@@ -602,7 +602,7 @@ try:
                     # Voltar ao menu principal
                     break
                 else:
-                    print("Opção inválida. Por favor, escolha uma das opções disponíveis.\n")
+                    print("Voltando...\n")
 
         if escolha_principal == 3:
                 # Vendas
